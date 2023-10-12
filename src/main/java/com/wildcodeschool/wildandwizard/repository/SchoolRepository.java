@@ -17,23 +17,31 @@ public class SchoolRepository {
 
     public School update(Long id, String name, Long capacity, String country) {
 
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            String updateQuery = "UPDATE school SET name=?, capacity=?, country=? WHERE id=?";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-                preparedStatement.setString(1, name);
-                preparedStatement.setLong(2, capacity);
-                preparedStatement.setString(3, country);
-                preparedStatement.setLong(4, id);
+        Connection connection = null;
+        PreparedStatement statement = null;
 
-                int rowsAffected = preparedStatement.executeUpdate();
-                if (rowsAffected > 0) {
-                    return new School(id, name, capacity, country);
-                }
+        try {
+            connection = DriverManager.getConnection(
+                    DB_URL, DB_USER, DB_PASSWORD
+            );
+            statement = connection.prepareStatement(
+                    "UPDATE school SET name=?, capacity=?, country=? WHERE id=?;"
+            );
+            statement.setString(1, name);
+            statement.setLong(2, capacity);
+            statement.setString(3, country);
+            statement.setLong(4, id);
 
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+            if (statement.executeUpdate() != 1) {
+                throw new SQLException("Failed to update data");
             }
+            return new School(id, name, capacity, country);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JdbcUtils.closeConnection(connection);
+            JdbcUtils.closeStatement(statement);
+        }
         return null;
     }
 
