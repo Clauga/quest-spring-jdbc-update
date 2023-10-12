@@ -17,7 +17,23 @@ public class SchoolRepository {
 
     public School update(Long id, String name, Long capacity, String country) {
 
-        // TODO : update a school from the database
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String updateQuery = "UPDATE school SET name=?, capacity=?, country=? WHERE id=?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                preparedStatement.setString(1, name);
+                preparedStatement.setLong(2, capacity);
+                preparedStatement.setString(3, country);
+                preparedStatement.setLong(4, id);
+
+                int rowsAffected = preparedStatement.executeUpdate();
+                if (rowsAffected > 0) {
+                    return new School(id, name, capacity, country);
+                }
+
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         return null;
     }
 
